@@ -1,0 +1,2 @@
+uv run pytest -q
+11 passed, 23 warnings in 9.14s

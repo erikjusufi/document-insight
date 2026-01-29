@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5f0ea" />
+      <stop offset="100%" stop-color="#efe7df" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)" />
+  <rect x="40" y="40" width="720" height="370" rx="24" fill="#ffffff" stroke="#e3d6cb" />
+  <text x="80" y="120" font-family="Space Grotesk, sans-serif" font-size="28" fill="#1b1b1f">Document Insight UI</text>
+  <text x="80" y="160" font-family="IBM Plex Sans, sans-serif" font-size="16" fill="#5f5f6a">Auth · Upload · Extract · Search · Ask</text>
+  <rect x="80" y="200" width="640" height="140" rx="18" fill="#f9f4ef" stroke="#e3d6cb" />
+  <text x="100" y="250" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="#2c6e49">Frontend UI placeholder artifact</text>
+</svg>
