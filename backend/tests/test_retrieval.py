@@ -7,7 +7,16 @@ from sqlalchemy.orm import sessionmaker
 from app.db.base import Base
 from app.db.models import DocumentChunk, DocumentPage
 from app.db.repos.documents import DocumentRepository
+from app.services.faiss_service import FaissService
 from app.services.retrieval_service import RetrievalService
+
+
+class FakeEmbeddingService:
+    def embed_texts(self, texts: list[str]) -> list[list[float]]:
+        return [[float(len(text))] for text in texts]
+
+    def embed_query(self, text: str) -> list[float]:
+        return [float(len(text))]
 
 
 @pytest.fixture()
@@ -20,7 +29,7 @@ def session(tmp_path: Path):
         yield session
 
 
-def test_retrieval_returns_relevant_chunk(session):
+def test_retrieval_returns_relevant_chunk(session, tmp_path: Path):
     repo = DocumentRepository()
 
     doc = repo.create(
@@ -43,14 +52,19 @@ def test_retrieval_returns_relevant_chunk(session):
     )
     repo.replace_pages_and_chunks(session, doc.id, [page], [chunk])
 
-    service = RetrievalService(repo)
+    faiss_service = FaissService(index_dir=str(tmp_path / "faiss"))
+    service = RetrievalService(
+        repo,
+        embedding_service=FakeEmbeddingService(),
+        faiss_service=faiss_service,
+    )
     results = service.retrieve(session, doc.id, "zebra", top_k=1)
 
     assert len(results) == 1
     assert "zebra" in results[0].snippet
 
 
-def test_retrieval_empty_query_returns_no_results(session):
+def test_retrieval_empty_query_returns_no_results(session, tmp_path: Path):
     repo = DocumentRepository()
 
     doc = repo.create(
@@ -73,7 +87,12 @@ def test_retrieval_empty_query_returns_no_results(session):
     )
     repo.replace_pages_and_chunks(session, doc.id, [page], [chunk])
 
-    service = RetrievalService(repo)
+    faiss_service = FaissService(index_dir=str(tmp_path / "faiss"))
+    service = RetrievalService(
+        repo,
+        embedding_service=FakeEmbeddingService(),
+        faiss_service=faiss_service,
+    )
     results = service.retrieve(session, doc.id, "   ", top_k=1)
 
     assert results == []

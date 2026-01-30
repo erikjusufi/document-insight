@@ -5,13 +5,19 @@ from app.db.repos.documents import DocumentRepository
 from app.db.session import get_session
 from app.schemas.retrieval import RetrievalRequest, RetrievalResponse, RetrievalResultResponse
 from app.services.current_user import get_current_user
+from app.services.embedding_service import EmbeddingService
+from app.services.faiss_service import FaissService
 from app.services.retrieval_service import RetrievalService
 
 router = APIRouter()
 
 
 def get_retrieval_service() -> RetrievalService:
-    return RetrievalService(DocumentRepository())
+    return RetrievalService(
+        DocumentRepository(),
+        embedding_service=EmbeddingService(),
+        faiss_service=FaissService(),
+    )
 
 
 @router.post("/documents/{document_id}/search", response_model=RetrievalResponse)

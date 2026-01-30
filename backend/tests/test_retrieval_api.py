@@ -11,6 +11,16 @@ from app.db.models import DocumentChunk, DocumentPage
 from app.db.repos.documents import DocumentRepository
 from app.db.session import get_engine, get_session
 from app.main import create_app
+from app.routers.retrieval import get_retrieval_service
+from app.services.retrieval_service import RetrievalService
+
+
+class FakeEmbeddingService:
+    def embed_texts(self, texts: list[str]) -> list[list[float]]:
+        return [[float(len(text))] for text in texts]
+
+    def embed_query(self, text: str) -> list[float]:
+        return [float(len(text))]
 
 
 @pytest.fixture()
@@ -23,6 +33,7 @@ def client(tmp_path: Path):
     settings.database_url = f"sqlite:///{db_path}"
     settings.storage_dir = str(storage_dir)
     settings.qa_load_on_startup = False
+    settings.faiss_index_dir = str(tmp_path / "faiss")
 
     get_engine.cache_clear()
 
@@ -38,6 +49,10 @@ def client(tmp_path: Path):
             yield session
 
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_retrieval_service] = lambda: RetrievalService(
+        DocumentRepository(),
+        embedding_service=FakeEmbeddingService(),
+    )
 
     with TestClient(app) as test_client:
         yield test_client
@@ -133,7 +148,7 @@ def test_search_endpoint_min_score_filters(client: TestClient) -> None:
     response = client.post(
         f"/documents/{document_id}/search",
         headers={"Authorization": f"Bearer {token}"},
-        json={"query": "zebra", "top_k": 1, "min_score": 1.0, "offset": 0},
+        json={"query": "zebra", "top_k": 1, "min_score": 1000.0, "offset": 0},
     )
 
     assert response.status_code == 200

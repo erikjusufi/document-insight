@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     qa_load_on_startup: bool = True
     qa_top_k: int = 10
     qa_max_context_chars: int = 4000
+    embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    faiss_index_dir: str = "./storage/faiss"
+    redis_url: str = "redis://localhost:6379/0"
 
 
 @lru_cache

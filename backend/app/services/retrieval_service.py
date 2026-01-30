@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy.orm import Session
 
 from app.db.models import DocumentChunk, DocumentPage
 from app.db.repos.documents import DocumentRepository
+from app.services.embedding_service import EmbeddingService
+from app.services.faiss_service import FaissService
 
 
 @dataclass(frozen=True)
@@ -18,8 +18,15 @@ class RetrievalResult:
 
 
 class RetrievalService:
-    def __init__(self, repo: DocumentRepository) -> None:
+    def __init__(
+        self,
+        repo: DocumentRepository,
+        embedding_service: EmbeddingService | None = None,
+        faiss_service: FaissService | None = None,
+    ) -> None:
         self.repo = repo
+        self.embedding_service = embedding_service or EmbeddingService()
+        self.faiss_service = faiss_service or FaissService()
 
     def retrieve(
         self,
@@ -51,19 +58,23 @@ class RetrievalService:
         if not texts:
             return []
 
-        vectorizer = TfidfVectorizer()
-        doc_matrix = vectorizer.fit_transform(texts)
-        query_vec = vectorizer.transform([query])
-        scores = cosine_similarity(query_vec, doc_matrix).flatten()
-        ranked = sorted(range(len(scores)), key=lambda idx: scores[idx], reverse=True)
+        chunk_by_id = {chunk.id: chunk for chunk in chunk_meta}
+        index, ids = self.faiss_service.load_index(document_id)
+        if index is None or len(ids) != len(texts):
+            vectors = self.embedding_service.embed_texts(texts)
+            ids = [chunk.id for chunk in chunk_meta]
+            self.faiss_service.save_index(document_id, vectors, ids)
+
+        query_vector = self.embedding_service.embed_query(query)
+        scored = self.faiss_service.search(document_id, query_vector, top_k + offset)
 
         results: list[RetrievalResult] = []
-        sliced = ranked[offset : offset + top_k]
-        for idx in sliced:
-            chunk = chunk_meta[idx]
+        for chunk_id, score in scored[offset : offset + top_k]:
+            chunk = chunk_by_id.get(chunk_id)
+            if chunk is None:
+                continue
             page = page_map[chunk.page_number]
             snippet = page.text[chunk.start_offset:chunk.end_offset]
-            score = float(scores[idx])
             if score < min_score:
                 continue
             results.append(
