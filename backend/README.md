@@ -19,6 +19,7 @@
 - `QA_MAX_CONTEXT_CHARS` (default: `4000`)
 - `EMBEDDING_MODEL_NAME` (default: `sentence-transformers/all-MiniLM-L6-v2`)
 - `FAISS_INDEX_DIR` (default: `./storage/faiss`)
+- `REDIS_URL` (default: `redis://localhost:6379/0`)
 
 ## Schema Notes
 
