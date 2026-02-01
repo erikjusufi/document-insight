@@ -28,6 +28,7 @@ def upload_documents(
             filename=doc.filename,
             content_type=doc.content_type,
             size_bytes=doc.size_bytes,
+            language=doc.language,
         )
         for doc in docs
     ]

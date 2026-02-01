@@ -20,5 +20,8 @@ def _recreate_chunks_table(engine) -> None:
 def init_db() -> None:
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
+    if not _has_column(engine, "documents", "language"):
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE documents ADD COLUMN language VARCHAR(16)"))
     if not _has_column(engine, "document_chunks", "start_offset"):
         _recreate_chunks_table(engine)

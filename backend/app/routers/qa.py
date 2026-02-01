@@ -3,11 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.db.repos.documents import DocumentRepository
 from app.db.session import get_session
-from app.schemas.qa import AskRequest, AskResponse, AskSource
+from app.schemas.qa import AskEntity, AskRequest, AskResponse, AskSource
 from app.core.settings import get_settings
 from app.services.current_user import get_current_user
 from app.services.qa_service import QAService
 from app.services.retrieval_service import RetrievalService
+from app.services.ner_service import NERService
 
 router = APIRouter()
 
@@ -22,6 +23,10 @@ def get_retrieval_service() -> RetrievalService:
     return RetrievalService(DocumentRepository())
 
 
+def get_ner_service() -> NERService:
+    return NERService()
+
+
 @router.post("/ask", response_model=AskResponse)
 def ask(
     payload: AskRequest,
@@ -29,6 +34,7 @@ def ask(
     current_user=Depends(get_current_user),
     qa_service: QAService = Depends(get_qa_service),
     retrieval_service: RetrievalService = Depends(get_retrieval_service),
+    ner_service: NERService = Depends(get_ner_service),
 ) -> AskResponse:
     settings = get_settings()
     document = retrieval_service.repo.get_by_id_for_user(session, payload.document_id, current_user.id)
@@ -43,7 +49,7 @@ def ask(
         top_k=retrieval_k,
     )
     if not results:
-        return AskResponse(answer="", confidence=0.0, sources=[])
+        return AskResponse(answer="", confidence=0.0, sources=[], entities=[])
 
     max_chars = settings.qa_max_context_chars
     contexts: list[str] = []
@@ -61,5 +67,12 @@ def ask(
 
     answer = qa_service.best_answer(payload.question, contexts)
     sources = [AskSource(page_number=r.page_number, snippet=r.snippet) for r in results[:payload.top_k]]
+    combined_text = "\n\n".join(source.snippet for source in sources)
+    entities = ner_service.extract(combined_text, document.language)
 
-    return AskResponse(answer=answer.answer, confidence=answer.score, sources=sources)
+    return AskResponse(
+        answer=answer.answer,
+        confidence=answer.score,
+        sources=sources,
+        entities=[AskEntity(text=e.text, label=e.label) for e in entities],
+    )

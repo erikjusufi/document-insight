@@ -17,6 +17,7 @@ class DocumentRepository:
         content_type: str,
         file_path: str,
         size_bytes: int,
+        language: str | None = None,
     ) -> Document:
         doc = Document(
             user_id=user_id,
@@ -24,11 +25,19 @@ class DocumentRepository:
             content_type=content_type,
             file_path=file_path,
             size_bytes=size_bytes,
+            language=language,
         )
         session.add(doc)
         session.commit()
         session.refresh(doc)
         return doc
+
+    def update_language(self, session: Session, document: Document, language: str | None) -> Document:
+        document.language = language
+        session.add(document)
+        session.commit()
+        session.refresh(document)
+        return document
 
     def replace_pages_and_chunks(
         self,

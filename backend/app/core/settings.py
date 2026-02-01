@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
     faiss_index_dir: str = "./storage/faiss"
     redis_url: str = "redis://localhost:6379/0"
+    ner_default_model: str = "en_core_web_sm"
+    ner_model_map: dict[str, str] = {"en": "en_core_web_sm", "hr": "hr_core_news_sm"}
 
 
 @lru_cache

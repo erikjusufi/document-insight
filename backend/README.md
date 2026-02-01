@@ -20,8 +20,15 @@
 - `EMBEDDING_MODEL_NAME` (default: `sentence-transformers/all-MiniLM-L6-v2`)
 - `FAISS_INDEX_DIR` (default: `./storage/faiss`)
 - `REDIS_URL` (default: `redis://localhost:6379/0`)
+- `NER_DEFAULT_MODEL` (default: `en_core_web_sm`)
+- `NER_MODEL_MAP` (default: `{"en": "en_core_web_sm", "hr": "hr_core_news_sm"}`)
 
 ## Schema Notes
 
 - If `document_chunks` schema changes, existing chunk rows may be dropped on startup.
 - Re-run `/documents/{document_id}/extract` to rebuild chunks.
+
+## NER Models
+
+- English: `uv run python -m spacy download en_core_web_sm`
+- Croatian: `uv run python -m spacy download hr_core_news_sm`

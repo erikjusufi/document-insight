@@ -12,7 +12,13 @@ class AskSource(BaseModel):
     snippet: str
 
 
+class AskEntity(BaseModel):
+    text: str
+    label: str
+
+
 class AskResponse(BaseModel):
     answer: str
     confidence: float
     sources: list[AskSource]
+    entities: list[AskEntity]

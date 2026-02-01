@@ -22,6 +22,7 @@ class Document(Base):
     content_type: Mapped[str] = mapped_column(String(255))
     file_path: Mapped[str] = mapped_column(String(512))
     size_bytes: Mapped[int] = mapped_column()
+    language: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
 
 class DocumentPage(Base):

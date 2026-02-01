@@ -8,6 +8,7 @@ from app.core.settings import get_settings
 from app.db.models import Document, DocumentChunk, DocumentPage
 from app.db.repos.documents import DocumentRepository
 from app.services.ocr_service import OCRService
+from app.services.language_service import LanguageService
 
 
 class ExtractionService:
@@ -45,6 +46,7 @@ class ExtractionService:
                     )
                 )
             self.repo.replace_pages_and_chunks(session, document.id, pages, chunks)
+            self._update_language_if_missing(session, document, pages)
             return len(pages), len(chunks)
 
         with fitz.open(doc_path) as pdf:
@@ -77,7 +79,21 @@ class ExtractionService:
                     )
 
         self.repo.replace_pages_and_chunks(session, document.id, pages, chunks)
+        self._update_language_if_missing(session, document, pages)
         return len(pages), len(chunks)
+
+    def _update_language_if_missing(
+        self,
+        session: Session,
+        document: Document,
+        pages: list[DocumentPage],
+    ) -> None:
+        if document.language:
+            return
+        combined = "\n".join(page.text for page in pages)
+        language = LanguageService().detect_language(combined)
+        if language:
+            self.repo.update_language(session, document, language)
 
 
 def chunk_ranges(text: str, size: int = 500, overlap: int = 50) -> Iterable[tuple[int, int]]:

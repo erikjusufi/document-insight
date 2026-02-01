@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+import fitz
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
@@ -87,3 +88,24 @@ def test_upload_saves_files_and_metadata(client: TestClient, tmp_path: Path) -> 
         rows = session.execute(text("SELECT filename FROM documents")).all()
         filenames = sorted(row[0] for row in rows)
     assert filenames == ["a.txt", "b.txt"]
+
+
+def test_upload_detects_language_for_pdf(client: TestClient, tmp_path: Path) -> None:
+    token = register_and_login(client)
+
+    pdf_path = tmp_path / "lang.pdf"
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((72, 72), "This is an English sentence. " * 5)
+    doc.save(pdf_path)
+    doc.close()
+
+    response = client.post(
+        "/upload",
+        headers={"Authorization": f"Bearer {token}"},
+        files=[("files", ("lang.pdf", pdf_path.read_bytes(), "application/pdf"))],
+    )
+
+    assert response.status_code == 201
+    payload = response.json()
+    assert payload[0]["language"] == "en"

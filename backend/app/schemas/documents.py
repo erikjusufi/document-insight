@@ -6,3 +6,4 @@ class DocumentResponse(BaseModel):
     filename: str
     content_type: str
     size_bytes: int
+    language: str | None = None
