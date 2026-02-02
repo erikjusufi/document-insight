@@ -1,7 +1,0 @@
-Docker dev target:
-
-- docker compose -f docker-compose.dev.yml up --build
-
-Notes:
-- Frontend: http://127.0.0.1:5173
-- Backend: http://127.0.0.1:8000

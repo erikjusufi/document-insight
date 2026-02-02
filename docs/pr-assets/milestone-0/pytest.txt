@@ -1,2 +1,0 @@
-uv run pytest -q
-1 passed in 0.64s
