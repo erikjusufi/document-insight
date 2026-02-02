@@ -1,1 +1,4 @@
-1. What is viewpoint entropy?
+IMPROVEMENTS
+- status bar when running long jobs (extraction, ask)
+- answers not structured, i want that answer to be represented to user, it contains random \n
+- make UI more modern and user friendly for production, keep only functionalities that present value to user (for example remove extract and do it before async with some kind of modal popup for user to know what is the job progress)

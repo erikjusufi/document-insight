@@ -14,7 +14,14 @@ class QAAnswer:
 class QAService:
     def __init__(self, model_name: str | None = None) -> None:
         settings = get_settings()
-        self.model_name = model_name or settings.qa_model_name
+        if model_name:
+            self.model_name = model_name
+        else:
+            preset = settings.qa_model_preset.lower()
+            if preset == "distilbert":
+                self.model_name = settings.qa_distilbert_model_name
+            else:
+                self.model_name = settings.qa_model_name
         self._pipeline = None
 
     def load(self) -> None:

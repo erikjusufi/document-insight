@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     storage_dir: str = "./storage"
     ocr_languages: list[str] = ["en", "hr"]
     ocr_min_text_length: int = 100
+    qa_model_preset: str = "best"
     qa_model_name: str = "deepset/xlm-roberta-large-squad2"
+    qa_distilbert_model_name: str = "distilbert-base-cased-distilled-squad"
     qa_load_on_startup: bool = True
     qa_top_k: int = 10
     qa_max_context_chars: int = 4000

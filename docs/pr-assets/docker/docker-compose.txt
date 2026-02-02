@@ -1,0 +1,4 @@
+Dockerization:
+- backend/Dockerfile (uv run uvicorn + spaCy models baked in)
+- frontend/Dockerfile (Vite build -> nginx, API base baked at build time)
+- docker-compose.yml (backend + frontend + redis, VITE_API_BASE_URL=http://backend:8000)

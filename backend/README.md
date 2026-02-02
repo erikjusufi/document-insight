@@ -13,7 +13,9 @@
 - `STORAGE_DIR` (default: `./storage`)
 - `OCR_LANGUAGES` (default: `["en", "hr"]`)
 - `OCR_MIN_TEXT_LENGTH` (default: `100`)
+- `QA_MODEL_PRESET` (default: `best`, options: `best`, `distilbert`)
 - `QA_MODEL_NAME` (default: `deepset/xlm-roberta-large-squad2`)
+- `QA_DISTILBERT_MODEL_NAME` (default: `distilbert-base-cased-distilled-squad`)
 - `QA_LOAD_ON_STARTUP` (default: `true`)
 - `QA_TOP_K` (default: `10`)
 - `QA_MAX_CONTEXT_CHARS` (default: `4000`)
@@ -25,8 +27,9 @@
 
 ## Schema Notes
 
-- If `document_chunks` schema changes, existing chunk rows may be dropped on startup.
-- Re-run `/documents/{document_id}/extract` to rebuild chunks.
+- If `document_chunks` gains new columns, defaults are added and offsets are backfilled
+  from `document_pages` when possible.
+- Re-run `/documents/{document_id}/extract` to rebuild precise chunk offsets.
 
 ## NER Models
 

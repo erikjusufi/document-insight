@@ -239,6 +239,38 @@ Each PR must:
   - tests
   - passing CI
 
+---
+
+## 6. TechAssignment Delivery Checklist
+
+Remaining delivery requirements from the TechAssignment PDF must be completed
+after Enhancements A–C:
+
+- Dockerize the application (backend + frontend).
+- Add sample/dummy documents to the repo for testing.
+- Create a root README that includes:
+  - setup instructions
+  - manual installation + Docker instructions
+  - example API requests/responses
+  - brief approach and model/tool choices
+  - optional screenshots or demo notes
+
+Work on these items in small, reviewable increments.
+
+---
+
+## 7. Deployment + UI Improvements (Planned)
+
+Deployment additions:
+- Production Docker setup (multi-stage builds, environment config).
+- Optional reverse proxy (e.g., Nginx) and HTTPS termination.
+- Optional process manager (systemd) for non-container deployment.
+
+UI improvements (choose one or more):
+- Gradio or Streamlit prototype (as suggested by the TechAssignment).
+- Vue frontend enhancements for production (routing, state management, API error UX).
+- Add static hosting guidance (Vite build + Nginx/Cloud storage).
+
 Avoid:
 - massive refactors
 - unrelated cleanup
