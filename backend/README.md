@@ -41,3 +41,7 @@
 - `POST /documents/{id}/extract/async` returns a job id.
 - `POST /ask/async` returns a job id (supports `model_preset`).
 - `GET /jobs/{job_id}` returns job status + result.
+
+## Developer Notes
+
+- Install dev tooling (pytest, etc.): `uv sync --extra dev`
