@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 
 import fitz
@@ -21,7 +21,12 @@ class ExtractionService:
             self._ocr_service = OCRService()
         return self._ocr_service
 
-    def extract_from_document(self, session: Session, document: Document) -> tuple[int, int]:
+    def extract_from_document(
+        self,
+        session: Session,
+        document: Document,
+        progress: Callable[[int, int], None] | None = None,
+    ) -> tuple[int, int]:
         doc_path = Path(document.file_path)
         pages: list[DocumentPage] = []
         chunks: list[DocumentChunk] = []
@@ -47,9 +52,12 @@ class ExtractionService:
                 )
             self.repo.replace_pages_and_chunks(session, document.id, pages, chunks)
             self._update_language_if_missing(session, document, pages)
+            if progress:
+                progress(1, 1)
             return len(pages), len(chunks)
 
         with fitz.open(doc_path) as pdf:
+            total_pages = max(pdf.page_count, 1)
             for page_index in range(pdf.page_count):
                 page = pdf.load_page(page_index)
                 text = page.get_text("text")
@@ -77,6 +85,8 @@ class ExtractionService:
                             end_offset=end,
                         )
                     )
+                if progress:
+                    progress(page_index + 1, total_pages)
 
         self.repo.replace_pages_and_chunks(session, document.id, pages, chunks)
         self._update_language_if_missing(session, document, pages)

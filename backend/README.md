@@ -35,3 +35,9 @@
 
 - English: `uv run python -m spacy download en_core_web_sm`
 - Croatian: `uv run python -m spacy download hr_core_news_sm`
+
+## Async Jobs
+
+- `POST /documents/{id}/extract/async` returns a job id.
+- `POST /ask/async` returns a job id (supports `model_preset`).
+- `GET /jobs/{job_id}` returns job status + result.

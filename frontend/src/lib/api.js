@@ -64,6 +64,13 @@ export async function extractDocument(token, documentId) {
   });
 }
 
+export async function extractDocumentAsync(token, documentId) {
+  return request(`/documents/${documentId}/extract/async`, {
+    method: "POST",
+    token
+  });
+}
+
 export async function searchDocument(token, documentId, payload) {
   return request(`/documents/${documentId}/search`, {
     method: "POST",
@@ -78,6 +85,18 @@ export async function askQuestion(token, payload) {
     token,
     body: JSON.stringify(payload)
   });
+}
+
+export async function askQuestionAsync(token, payload) {
+  return request("/ask/async", {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function getJobStatus(token, jobId) {
+  return request(`/jobs/${jobId}`, { token });
 }
 
 export function getApiBaseUrl() {

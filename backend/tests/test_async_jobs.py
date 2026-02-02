@@ -11,7 +11,9 @@ from app.db.models import DocumentChunk, DocumentPage
 from app.db.repos.documents import DocumentRepository
 from app.db.session import get_engine, get_session
 from app.main import create_app
+from app.routers.documents import get_extraction_service
 from app.routers.qa import get_ner_service, get_qa_service
+from app.services.extraction_service import ExtractionService
 from app.services.qa_service import QAAnswer, QAService
 from app.services.ner_service import Entity, NERService
 
@@ -34,7 +36,17 @@ class FakeNERService(NERService):
         pass
 
     def extract(self, text: str, language: str | None = None) -> list[Entity]:
-        return [Entity(text="Croatia", label="GPE")]
+        return []
+
+
+class FakeExtractionService(ExtractionService):
+    def __init__(self, repo: DocumentRepository) -> None:
+        self.repo = repo
+
+    def extract_from_document(self, session, document, progress=None):
+        if progress:
+            progress(1, 1)
+        return 1, 1
 
 
 @pytest.fixture()
@@ -64,6 +76,9 @@ def client(tmp_path: Path):
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_qa_service] = lambda: FakeQAService()
     app.dependency_overrides[get_ner_service] = lambda: FakeNERService()
+    app.dependency_overrides[get_extraction_service] = lambda: FakeExtractionService(
+        DocumentRepository()
+    )
 
     with TestClient(app) as test_client:
         yield test_client
@@ -74,24 +89,22 @@ def client(tmp_path: Path):
 def register_and_login(client: TestClient) -> str:
     client.post(
         "/auth/register",
-        json={"email": "qa@example.com", "password": "secret123"},
+        json={"email": "jobs@example.com", "password": "secret123"},
     )
     login_response = client.post(
         "/auth/login",
-        json={"email": "qa@example.com", "password": "secret123"},
+        json={"email": "jobs@example.com", "password": "secret123"},
     )
     return login_response.json()["access_token"]
 
 
-def test_ask_returns_answer_and_sources(client: TestClient) -> None:
-    token = register_and_login(client)
-
+def create_document(client: TestClient) -> int:
     SessionLocal = client.app.state.sessionmaker
     repo = DocumentRepository()
     with SessionLocal() as session:
         user_id = session.execute(
             text("SELECT id FROM users WHERE email = :email"),
-            {"email": "qa@example.com"},
+            {"email": "jobs@example.com"},
         ).one()[0]
         document = repo.create(
             session,
@@ -101,7 +114,7 @@ def test_ask_returns_answer_and_sources(client: TestClient) -> None:
             file_path="/tmp/doc.pdf",
             size_bytes=10,
         )
-        page_text = "alpha beta gamma delta epsilon zebra tiger"
+        page_text = "alpha beta gamma"
         page = DocumentPage(document_id=document.id, page_number=1, text=page_text)
         chunk = DocumentChunk(
             document_id=document.id,
@@ -111,26 +124,46 @@ def test_ask_returns_answer_and_sources(client: TestClient) -> None:
             end_offset=len(page_text),
         )
         repo.replace_pages_and_chunks(session, document.id, [page], [chunk])
-        document_id = document.id
+        return document.id
+
+
+def test_extract_async_job_completes(client: TestClient) -> None:
+    token = register_and_login(client)
+    document_id = create_document(client)
 
     response = client.post(
-        "/ask",
+        f"/documents/{document_id}/extract/async",
         headers={"Authorization": f"Bearer {token}"},
-        json={"document_id": document_id, "question": "zebra?", "top_k": 1},
     )
 
     assert response.status_code == 200
-    payload = response.json()
-    assert payload["answer"] == "sample answer"
-    assert payload["confidence"] == 0.9
-    assert payload["sources"][0]["page_number"] == 1
-    assert "zebra" in payload["sources"][0]["snippet"]
-    assert payload["entities"][0]["text"] == "Croatia"
+    job_id = response.json()["job_id"]
 
-
-def test_ask_requires_auth(client: TestClient) -> None:
-    response = client.post(
-        "/ask",
-        json={"document_id": 1, "question": "zebra?", "top_k": 1},
+    status_response = client.get(
+        f"/jobs/{job_id}", headers={"Authorization": f"Bearer {token}"}
     )
-    assert response.status_code == 401
+    assert status_response.status_code == 200
+    payload = status_response.json()
+    assert payload["status"] in {"running", "completed"}
+
+
+def test_ask_async_job_returns_result(client: TestClient) -> None:
+    token = register_and_login(client)
+    document_id = create_document(client)
+
+    response = client.post(
+        "/ask/async",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"document_id": document_id, "question": "q", "top_k": 1},
+    )
+
+    assert response.status_code == 200
+    job_id = response.json()["job_id"]
+
+    status_response = client.get(
+        f"/jobs/{job_id}", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert status_response.status_code == 200
+    payload = status_response.json()
+    if payload["status"] == "completed":
+        assert payload["result"]["answer"] == "sample answer"

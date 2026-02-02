@@ -7,6 +7,7 @@ from app.db.init import init_db
 from app.routers.auth import router as auth_router
 from app.routers.documents import router as documents_router
 from app.routers.entities import router as entities_router
+from app.routers.jobs import router as jobs_router
 from app.routers.qa import router as qa_router
 from app.routers.retrieval import router as retrieval_router
 from app.routers.upload import router as upload_router
@@ -31,6 +32,9 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     def on_startup() -> None:
         init_db()
+        from app.services.job_store import JobStore
+
+        app.state.job_store = JobStore()
         if settings.qa_load_on_startup:
             from app.services.qa_service import QAService
 
@@ -47,6 +51,7 @@ def create_app() -> FastAPI:
     app.include_router(retrieval_router, tags=["documents"])
     app.include_router(upload_router, tags=["documents"])
     app.include_router(entities_router, tags=["documents"])
+    app.include_router(jobs_router, tags=["jobs"])
     app.include_router(qa_router, tags=["qa"])
     return app
 

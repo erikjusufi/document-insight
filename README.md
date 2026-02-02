@@ -33,7 +33,7 @@ Backend default URL: `http://127.0.0.1:8000`
 
 ---
 
-## 2) Docker (coming next)
+## 2) Docker
 
 Docker is available for the whole app (backend + frontend).
 
@@ -46,6 +46,15 @@ docker compose up --build
 - Redis: `localhost:6379` (container name `redis`)
 - spaCy models are baked into the backend image (`en_core_web_sm`, `hr_core_news_sm`).
 - Frontend container is built with `VITE_API_BASE_URL=http://localhost:8000`.
+
+### Docker (dev target, hot reload)
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+- Frontend dev server runs on `http://127.0.0.1:5173`
+- Backend runs on `http://127.0.0.1:8000`
 
 ---
 
@@ -78,6 +87,12 @@ curl -X POST http://127.0.0.1:8000/documents/1/extract \
   -H 'Authorization: Bearer <TOKEN>'
 ```
 
+### Extract (async + progress)
+```bash
+curl -X POST http://127.0.0.1:8000/documents/1/extract/async \
+  -H 'Authorization: Bearer <TOKEN>'
+```
+
 ### Search
 ```bash
 curl -X POST http://127.0.0.1:8000/documents/1/search \
@@ -91,7 +106,21 @@ curl -X POST http://127.0.0.1:8000/documents/1/search \
 curl -X POST http://127.0.0.1:8000/ask \
   -H 'Authorization: Bearer <TOKEN>' \
   -H 'Content-Type: application/json' \
-  -d '{"document_id":1,"question":"What is the total?","top_k":3}'
+  -d '{"document_id":1,"question":"What is the total?","top_k":3,"model_preset":"best"}'
+```
+
+### Ask (async + progress)
+```bash
+curl -X POST http://127.0.0.1:8000/ask/async \
+  -H 'Authorization: Bearer <TOKEN>' \
+  -H 'Content-Type: application/json' \
+  -d '{"document_id":1,"question":"What is the total?","top_k":3,"model_preset":"distilbert"}'
+```
+
+### Job status
+```bash
+curl -X GET http://127.0.0.1:8000/jobs/<JOB_ID> \
+  -H 'Authorization: Bearer <TOKEN>'
 ```
 
 ### Entities
@@ -116,6 +145,7 @@ curl -X GET http://127.0.0.1:8000/documents/1/entities \
 - Local extractive QA with `deepset/xlm-roberta-large-squad2` (best) or DistilBERT QA.
   - Set `QA_MODEL_PRESET=distilbert` to switch to `distilbert-base-cased-distilled-squad`.
   - Override with `QA_MODEL_NAME` for a custom model.
+  - Per-request override: pass `model_preset` in `/ask` or `/ask/async`.
 
 **NER**
 - spaCy models by language, chosen from detected doc language.

@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-      target: prod
+      target: dev
     ports:
       - "8000:8000"
     environment:
@@ -11,6 +11,7 @@ services:
       - FAISS_INDEX_DIR=/app/storage/faiss
       - REDIS_URL=redis://redis:6379/0
     volumes:
+      - ./backend/app:/app/app
       - ./backend/storage:/app/storage
     depends_on:
       - redis
@@ -19,11 +20,14 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-      target: prod
-      args:
-        VITE_API_BASE_URL: http://localhost:8000
+      target: dev
     ports:
-      - "5173:80"
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
 

@@ -44,20 +44,23 @@ Then open the URL shown by Vite (usually `http://localhost:5173`).
    - Select one or more files and upload.
    - The response returns document IDs you will use in the next steps.
 
-3) **Extract**
+3) **Extract (required before Ask)**
    - Provide the `document_id` and run extraction.
+   - Extraction runs asynchronously with a progress modal.
 
 4) **Search**
    - Search within a document for top-k chunks/snippets.
 
 5) **Ask**
-   - Ask a question and receive the answer, confidence, and sources.
+   - Choose a QA model (Best / DistilBERT).
+   - Ask a question and receive the answer, confidence, sources, and entities.
+   - Ask runs asynchronously with a progress modal.
 
 ## 6) Files and structure
 
 - `src/App.vue`: main UI and API calls
 - `src/lib/api.js`: fetch wrapper and endpoints
-- `src/assets/styles.css`: styling and layout
+- Styling is embedded in `src/App.vue`.
 
 ## 7) Troubleshooting
 
