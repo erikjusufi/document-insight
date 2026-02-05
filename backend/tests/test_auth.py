@@ -14,9 +14,12 @@ from app.main import create_app
 @pytest.fixture()
 def client(tmp_path):
     db_path = tmp_path / "test.db"
+    sample_dir = tmp_path / "samples"
+    sample_dir.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
     get_settings.cache_clear()
     settings = get_settings()
+    settings.sample_docs_dir = str(sample_dir)
     settings.qa_load_on_startup = False
     get_engine.cache_clear()
 

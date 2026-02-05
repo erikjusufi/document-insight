@@ -11,6 +11,7 @@
 - `JWT_ALGORITHM` (default: `HS256`)
 - `ACCESS_TOKEN_EXPIRE_MINUTES` (default: `60`)
 - `STORAGE_DIR` (default: `./storage`)
+- `SAMPLE_DOCS_DIR` (default: `../samples`)
 - `OCR_LANGUAGES` (default: `["en", "hr"]`)
 - `OCR_MIN_TEXT_LENGTH` (default: `100`)
 - `QA_MODEL_PRESET` (default: `best`, options: `best`, `distilbert`)
@@ -41,6 +42,11 @@
 - `POST /documents/{id}/extract/async` returns a job id.
 - `POST /ask/async` returns a job id (supports `model_preset`).
 - `GET /jobs/{job_id}` returns job status + result.
+
+## Documents
+
+- Sample PDFs from `SAMPLE_DOCS_DIR` are auto-imported on register/login (idempotent).
+- `GET /documents` lists all user documents with extraction status and page/chunk counts.
 
 ## Developer Notes
 

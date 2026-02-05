@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
     storage_dir: str = "./storage"
+    sample_docs_dir: str = "../samples"
     ocr_languages: list[str] = ["en", "hr"]
     ocr_min_text_length: int = 100
     qa_model_preset: str = "best"

@@ -3,9 +3,11 @@ from sqlalchemy.orm import Session
 
 from app.db.repos.documents import DocumentRepository
 from app.db.session import get_session
+from app.schemas.documents import DocumentLibraryResponse
 from app.schemas.extraction import ExtractionResponse
 from app.schemas.jobs import JobStatusResponse
 from app.services.current_user import get_current_user
+from app.services.document_service import DocumentService
 from app.services.extraction_service import ExtractionService
 
 router = APIRouter()
@@ -15,10 +17,37 @@ def get_extraction_service() -> ExtractionService:
     return ExtractionService(DocumentRepository())
 
 
+def get_document_service() -> DocumentService:
+    return DocumentService(DocumentRepository())
+
+
 def get_job_store(request: Request):
     if hasattr(request.app.state, "job_store"):
         return request.app.state.job_store
     return None
+
+
+@router.get("/documents", response_model=list[DocumentLibraryResponse])
+def list_documents(
+    session: Session = Depends(get_session),
+    current_user=Depends(get_current_user),
+    service: DocumentService = Depends(get_document_service),
+) -> list[DocumentLibraryResponse]:
+    service.import_sample_documents(session, current_user.id)
+    rows = service.list_documents_for_user(session, current_user.id)
+    return [
+        DocumentLibraryResponse(
+            id=item.document.id,
+            filename=item.document.filename,
+            content_type=item.document.content_type,
+            size_bytes=item.document.size_bytes,
+            language=item.document.language,
+            pages_count=item.pages_count,
+            chunks_count=item.chunks_count,
+            extraction_status=item.extraction_status,
+        )
+        for item in rows
+    ]
 
 
 @router.post("/documents/{document_id}/extract", response_model=ExtractionResponse)

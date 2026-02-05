@@ -81,6 +81,12 @@ curl -X POST http://127.0.0.1:8000/upload \
   -F 'files=@/path/to/sample.pdf'
 ```
 
+### List documents
+```bash
+curl -X GET http://127.0.0.1:8000/documents \
+  -H 'Authorization: Bearer <TOKEN>'
+```
+
 ### Extract
 ```bash
 curl -X POST http://127.0.0.1:8000/documents/1/extract \
@@ -160,6 +166,8 @@ samples/sample-contract.pdf
 samples/sample-invoice.pdf
 samples/sample-story.pdf
 ```
+
+These are auto-imported per user on register/login (if present in `SAMPLE_DOCS_DIR`).
 
 ---
 

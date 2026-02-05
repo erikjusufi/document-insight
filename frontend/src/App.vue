@@ -57,23 +57,8 @@
             Upload
           </button>
         </div>
-        <div class="list" v-if="uploadedDocs.length">
-          <div class="list-item" v-for="doc in uploadedDocs" :key="doc.id">
-            <div class="list-main">
-              <strong>#{{ doc.id }}</strong>
-              <div>
-                <div class="filename">{{ doc.filename }}</div>
-                <div class="list-meta">
-                  <span class="pill ghost">{{ doc.content_type }}</span>
-                  <span class="pill ghost">{{ doc.language || "unknown" }}</span>
-                  <span class="pill ghost">{{ formatSize(doc.size_bytes) }}</span>
-                </div>
-              </div>
-            </div>
-            <span class="pill" :class="{ ready: isExtracted(doc.id) }">
-              {{ isExtracted(doc.id) ? "Extracted" : "Needs extraction" }}
-            </span>
-          </div>
+        <div class="status" v-if="documentLibrary.length">
+          {{ documentLibrary.length }} documents in your library.
         </div>
         <pre class="output" v-if="uploadOutput">{{ uploadOutput }}</pre>
         </section>
@@ -84,8 +69,13 @@
           <p>Run extraction before asking questions.</p>
         </header>
         <div class="field">
-          <label>Document ID</label>
-          <input v-model="extract.documentId" type="number" min="1" />
+          <label>Document</label>
+          <select v-model="extract.documentId">
+            <option value="">Select a document</option>
+            <option v-for="doc in documentLibrary" :key="doc.id" :value="doc.id">
+              {{ formatDocumentLabel(doc) }}
+            </option>
+          </select>
         </div>
         <div class="actions">
           <button
@@ -99,14 +89,61 @@
         </section>
       </div>
 
+      <section class="panel wide">
+        <header>
+          <h2>Document Library</h2>
+          <p>All sample and uploaded PDFs for this account.</p>
+        </header>
+        <div class="actions">
+          <button class="ghost" @click="handleRefreshDocuments" :disabled="!token || busy.library">
+            Refresh List
+          </button>
+        </div>
+        <div class="hint" v-if="libraryError">
+          Library refresh failed: {{ libraryError }}
+        </div>
+        <div class="table-wrap" v-if="documentLibrary.length">
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Type</th>
+                <th>Extraction</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="doc in documentLibrary" :key="doc.id">
+                <td>#{{ doc.id }}</td>
+                <td>{{ doc.filename }}</td>
+                <td>{{ formatSize(doc.size_bytes) }}</td>
+                <td>{{ doc.content_type }}</td>
+                <td>
+                  <span class="pill" :class="{ ready: isExtracted(doc) }">
+                    {{ doc.extraction_status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="status" v-else-if="token">No documents yet.</div>
+      </section>
+
       <section class="panel wide ask-panel">
         <header>
           <h2>Ask a Question</h2>
           <p>Answer questions using your selected QA model.</p>
         </header>
         <div class="field">
-          <label>Document ID</label>
-          <input v-model="ask.documentId" type="number" min="1" />
+          <label>Document</label>
+          <select v-model="ask.documentId">
+            <option value="">Select an extracted document</option>
+            <option v-for="doc in documentLibrary" :key="doc.id" :value="doc.id">
+              {{ formatDocumentLabel(doc) }}
+            </option>
+          </select>
         </div>
         <div class="field">
           <label>Question</label>
@@ -167,8 +204,13 @@
           <p>Search is a separate feature focused on snippet retrieval.</p>
         </header>
         <div class="field">
-          <label>Document ID</label>
-          <input v-model="search.documentId" type="number" min="1" />
+          <label>Document</label>
+          <select v-model="search.documentId">
+            <option value="">Select a document</option>
+            <option v-for="doc in documentLibrary" :key="doc.id" :value="doc.id">
+              {{ formatDocumentLabel(doc) }}
+            </option>
+          </select>
         </div>
         <div class="field">
           <label>Query</label>
@@ -211,12 +253,13 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import {
   askQuestionAsync,
   extractDocumentAsync,
   getApiBaseUrl,
   getJobStatus,
+  listDocuments,
   login,
   me,
   register,
@@ -252,7 +295,7 @@ const ask = ref({
 });
 
 const files = ref([]);
-const uploadedDocs = ref([]);
+const documentLibrary = ref([]);
 const extractedDocs = ref(new Set());
 
 const authOutput = ref("");
@@ -261,6 +304,7 @@ const extractOutput = ref("");
 const searchOutput = ref("");
 const askOutput = ref("");
 const askResponse = ref(null);
+const libraryError = ref("");
 
 const progress = ref({
   visible: false,
@@ -275,12 +319,14 @@ const busy = ref({
   upload: false,
   extract: false,
   search: false,
-  ask: false
+  ask: false,
+  library: false
 });
 
 const canAsk = computed(() => {
   if (!ask.value.documentId) return false;
-  return extractedDocs.value.has(Number(ask.value.documentId));
+  const selected = documentLibrary.value.find((doc) => doc.id === Number(ask.value.documentId));
+  return selected?.extraction_status === "extracted" || extractedDocs.value.has(Number(ask.value.documentId));
 });
 
 function setOutput(target, data) {
@@ -293,6 +339,8 @@ function onFilesSelected(event) {
 
 function clearToken() {
   token.value = "";
+  documentLibrary.value = [];
+  libraryError.value = "";
   localStorage.removeItem("token");
 }
 
@@ -311,14 +359,69 @@ function formatSize(bytes) {
   return `${(kb / 1024).toFixed(2)} MB`;
 }
 
-function markExtracted(documentId) {
-  const next = new Set(extractedDocs.value);
-  next.add(Number(documentId));
-  extractedDocs.value = next;
+function isExtracted(document) {
+  return document.extraction_status === "extracted" || extractedDocs.value.has(Number(document.id));
 }
 
-function isExtracted(documentId) {
-  return extractedDocs.value.has(Number(documentId));
+function formatDocumentLabel(document) {
+  return `#${document.id} ${document.filename} (${formatSize(document.size_bytes)})`;
+}
+
+function markExtracted(documentId) {
+  const id = Number(documentId);
+  const next = new Set(extractedDocs.value);
+  next.add(id);
+  extractedDocs.value = next;
+  documentLibrary.value = documentLibrary.value.map((doc) =>
+    doc.id === id ? { ...doc, extraction_status: "extracted" } : doc
+  );
+}
+
+function syncExtractedFromLibrary() {
+  extractedDocs.value = new Set(
+    documentLibrary.value
+      .filter((doc) => doc.extraction_status === "extracted")
+      .map((doc) => Number(doc.id))
+  );
+}
+
+function mergeDocuments(nextDocs) {
+  const byId = new Map(documentLibrary.value.map((doc) => [Number(doc.id), doc]));
+  nextDocs.forEach((doc) => byId.set(Number(doc.id), doc));
+  documentLibrary.value = Array.from(byId.values()).sort((a, b) => Number(b.id) - Number(a.id));
+}
+
+async function refreshDocuments() {
+  if (!token.value) {
+    documentLibrary.value = [];
+    libraryError.value = "";
+    return;
+  }
+  let response;
+  try {
+    response = await listDocuments(token.value);
+  } catch (error) {
+    if (error.status === 404) {
+      libraryError.value = "Backend does not expose /documents yet. Restart backend to load latest routes.";
+      return;
+    }
+    throw error;
+  }
+  documentLibrary.value = response;
+  syncExtractedFromLibrary();
+  libraryError.value = "";
+  const ids = new Set(response.map((doc) => String(doc.id)));
+  const fallbackId = response.length ? String(response[0].id) : "";
+
+  if (!ids.has(String(extract.value.documentId))) {
+    extract.value.documentId = fallbackId;
+  }
+  if (!ids.has(String(search.value.documentId))) {
+    search.value.documentId = fallbackId;
+  }
+  if (!ids.has(String(ask.value.documentId))) {
+    ask.value.documentId = fallbackId;
+  }
 }
 
 async function pollJob(jobId, onComplete, onError) {
@@ -383,6 +486,16 @@ async function handleLogin() {
     });
     token.value = response.access_token;
     localStorage.setItem("token", token.value);
+    try {
+      await refreshDocuments();
+    } catch (error) {
+      libraryError.value = error.message;
+      setOutput(authOutput, {
+        ...response,
+        warning: `Login succeeded but document library refresh failed: ${error.message}`
+      });
+      return;
+    }
     setOutput(authOutput, response);
   } catch (error) {
     setOutput(authOutput, { error: error.message });
@@ -407,8 +520,24 @@ async function handleUpload() {
   busy.value.upload = true;
   try {
     const response = await uploadFiles(token.value, files.value);
-    uploadedDocs.value = response;
-    setOutput(uploadOutput, response);
+    mergeDocuments(
+      response.map((doc) => ({
+        ...doc,
+        pages_count: 0,
+        chunks_count: 0,
+        extraction_status: "pending"
+      }))
+    );
+    try {
+      await refreshDocuments();
+      setOutput(uploadOutput, response);
+    } catch (error) {
+      libraryError.value = error.message;
+      setOutput(uploadOutput, {
+        uploaded: response,
+        warning: `Upload succeeded but document library refresh failed: ${error.message}`
+      });
+    }
   } catch (error) {
     setOutput(uploadOutput, { error: error.message });
   } finally {
@@ -431,6 +560,9 @@ async function handleExtract() {
       response.job_id,
       (result) => {
         markExtracted(result.document_id);
+        refreshDocuments().catch((error) => {
+          libraryError.value = error.message;
+        });
         setOutput(extractOutput, result);
       },
       (errorMessage) => setOutput(extractOutput, { error: errorMessage })
@@ -492,6 +624,26 @@ async function handleAsk() {
     busy.value.ask = false;
   }
 }
+
+async function handleRefreshDocuments() {
+  busy.value.library = true;
+  try {
+    await refreshDocuments();
+  } catch (error) {
+    libraryError.value = error.message;
+  } finally {
+    busy.value.library = false;
+  }
+}
+
+onMounted(() => {
+  if (token.value) {
+    refreshDocuments().catch((error) => {
+      documentLibrary.value = [];
+      libraryError.value = error.message;
+    });
+  }
+});
 </script>
 
 <style>
@@ -636,7 +788,12 @@ select {
   font-size: 14px;
   font-family: inherit;
   background: #0f1115;
-  color: #0f1115;
+  color: #f3f1ee;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8f929b;
 }
 
 select {
@@ -716,39 +873,35 @@ button:disabled {
 .output.compact {
   max-height: 120px;
 }
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.list-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  background: #0f1115;
-  padding: 12px 14px;
+.table-wrap {
+  overflow-x: auto;
   border-radius: 14px;
-  font-size: 13px;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.list-main {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+  background: #0f1115;
 }
 
-.filename {
-  font-weight: 600;
+.doc-table th,
+.doc-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 13px;
 }
 
-.list-meta {
-  margin-top: 4px;
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+.doc-table th {
+  color: #c5c5cb;
+  font-weight: 700;
+  background: #13161c;
+}
+
+.doc-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .pill {

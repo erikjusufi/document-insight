@@ -42,10 +42,11 @@ Then open the URL shown by Vite (usually `http://localhost:5173`).
 
 2) **Upload**
    - Select one or more files and upload.
-   - The response returns document IDs you will use in the next steps.
+   - A document library table is refreshed (id, name, size, type, extraction status).
+   - Sample PDFs are auto-imported by the backend after auth.
 
 3) **Extract (required before Ask)**
-   - Provide the `document_id` and run extraction.
+   - Select a document (`id + filename + filesize`) and run extraction.
    - Extraction runs asynchronously with a progress modal.
 
 4) **Search**

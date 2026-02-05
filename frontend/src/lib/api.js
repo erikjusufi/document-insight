@@ -20,10 +20,19 @@ async function request(path, { method = "GET", token, body, contentType } = {}) 
     body
   });
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
   if (!res.ok) {
     const message = data?.detail || data?.message || res.statusText;
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = res.status;
+    throw error;
   }
   return data;
 }
@@ -55,6 +64,10 @@ export async function uploadFiles(token, files) {
     body: form,
     contentType: null
   });
+}
+
+export async function listDocuments(token) {
+  return request("/documents", { token });
 }
 
 export async function extractDocument(token, documentId) {

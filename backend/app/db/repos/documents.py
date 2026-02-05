@@ -1,4 +1,4 @@
-from sqlalchemy import delete, select
+from sqlalchemy import delete, distinct, func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Document, DocumentChunk, DocumentPage
@@ -58,3 +58,35 @@ class DocumentRepository:
     def list_chunks(self, session: Session, document_id: int) -> list[DocumentChunk]:
         stmt = select(DocumentChunk).where(DocumentChunk.document_id == document_id)
         return list(session.execute(stmt).scalars().all())
+
+    def get_by_user_filename_and_size(
+        self,
+        session: Session,
+        user_id: int,
+        filename: str,
+        size_bytes: int,
+    ) -> Document | None:
+        stmt = select(Document).where(
+            Document.user_id == user_id,
+            Document.filename == filename,
+            Document.size_bytes == size_bytes,
+        )
+        return session.execute(stmt).scalar_one_or_none()
+
+    def list_for_user_with_stats(
+        self,
+        session: Session,
+        user_id: int,
+    ) -> list[tuple[Document, int, int]]:
+        pages_count = func.count(distinct(DocumentPage.id)).label("pages_count")
+        chunks_count = func.count(distinct(DocumentChunk.id)).label("chunks_count")
+        stmt = (
+            select(Document, pages_count, chunks_count)
+            .outerjoin(DocumentPage, DocumentPage.document_id == Document.id)
+            .outerjoin(DocumentChunk, DocumentChunk.document_id == Document.id)
+            .where(Document.user_id == user_id)
+            .group_by(Document.id)
+            .order_by(Document.id.desc())
+        )
+        rows = session.execute(stmt).all()
+        return [(row[0], int(row[1] or 0), int(row[2] or 0)) for row in rows]

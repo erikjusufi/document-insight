@@ -27,11 +27,14 @@ class FakeNERService(NERService):
 def client(tmp_path: Path):
     db_path = tmp_path / "test.db"
     storage_dir = tmp_path / "storage"
+    sample_dir = tmp_path / "samples"
+    sample_dir.mkdir(parents=True, exist_ok=True)
 
     get_settings.cache_clear()
     settings = get_settings()
     settings.database_url = f"sqlite:///{db_path}"
     settings.storage_dir = str(storage_dir)
+    settings.sample_docs_dir = str(sample_dir)
     settings.qa_load_on_startup = False
 
     get_engine.cache_clear()
