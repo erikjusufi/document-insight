@@ -111,18 +111,39 @@
                 <th>Size</th>
                 <th>Type</th>
                 <th>Extraction</th>
+                <th>Quick Questions</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="doc in documentLibrary" :key="doc.id">
                 <td>#{{ doc.id }}</td>
-                <td>{{ doc.filename }}</td>
+                <td>
+                  <span>{{ doc.filename }}</span>
+                  <span class="pill ghost" v-if="isSampleDocument(doc)">Sample</span>
+                </td>
                 <td>{{ formatSize(doc.size_bytes) }}</td>
                 <td>{{ doc.content_type }}</td>
                 <td>
                   <span class="pill" :class="{ ready: isExtracted(doc) }">
                     {{ doc.extraction_status }}
                   </span>
+                </td>
+                <td>
+                  <div class="question-chips" v-if="getSampleQuestions(doc).length">
+                    <button
+                      class="ghost chip-button"
+                      v-for="question in getSampleQuestions(doc).slice(0, 2)"
+                      :key="`${doc.id}-${question}`"
+                      @click="applySampleQuestion(doc, question)"
+                    >
+                      {{ question }}
+                    </button>
+                  </div>
+                  <span class="muted" v-else>—</span>
+                </td>
+                <td>
+                  <button class="secondary" @click="openDocumentDetails(doc)">Open</button>
                 </td>
               </tr>
             </tbody>
@@ -249,6 +270,64 @@
         </div>
       </div>
     </div>
+
+    <div class="modal" v-if="detailsModal.open && selectedDocument">
+      <div class="modal-card doc-modal-card">
+        <div class="doc-modal-head">
+          <h3>{{ selectedDocument.filename }}</h3>
+          <button class="ghost" @click="closeDocumentDetails">Close</button>
+        </div>
+
+        <div class="tab-row">
+          <button class="tab-btn" :class="{ active: detailsModal.tab === 'details' }" @click="detailsModal.tab = 'details'">Details</button>
+          <button class="tab-btn" :class="{ active: detailsModal.tab === 'extract' }" @click="detailsModal.tab = 'extract'">Extract</button>
+          <button class="tab-btn" :class="{ active: detailsModal.tab === 'ask' }" @click="detailsModal.tab = 'ask'">Ask</button>
+          <button class="tab-btn" :class="{ active: detailsModal.tab === 'search' }" @click="detailsModal.tab = 'search'">Search</button>
+        </div>
+
+        <div class="tab-pane" v-if="detailsModal.tab === 'details'">
+          <div class="status">
+            #{{ selectedDocument.id }} · {{ selectedDocument.content_type }} ·
+            {{ formatSize(selectedDocument.size_bytes) }}
+          </div>
+          <div class="status">Extraction: {{ isExtracted(selectedDocument) ? "extracted" : "pending" }}</div>
+          <div class="status">Pages: {{ selectedDocument.pages_count || 0 }} · Chunks: {{ selectedDocument.chunks_count || 0 }}</div>
+        </div>
+
+        <div class="tab-pane" v-if="detailsModal.tab === 'extract'">
+          <p class="muted">Run extraction for this document before asking questions.</p>
+          <div class="actions">
+            <button @click="extractSelectedDocument" :disabled="busy.extract">
+              Extract This Document
+            </button>
+          </div>
+        </div>
+
+        <div class="tab-pane" v-if="detailsModal.tab === 'ask'">
+          <p class="muted">Use this document in Ask and optionally apply a sample question.</p>
+          <div class="actions">
+            <button @click="useDocumentInAsk(selectedDocument)">Use In Ask</button>
+          </div>
+          <div class="question-chips" v-if="getSampleQuestions(selectedDocument).length">
+            <button
+              class="ghost chip-button"
+              v-for="question in getSampleQuestions(selectedDocument)"
+              :key="`modal-${selectedDocument.id}-${question}`"
+              @click="applySampleQuestion(selectedDocument, question)"
+            >
+              {{ question }}
+            </button>
+          </div>
+        </div>
+
+        <div class="tab-pane" v-if="detailsModal.tab === 'search'">
+          <p class="muted">Set this document as the search target.</p>
+          <div class="actions">
+            <button @click="useDocumentInSearch(selectedDocument)">Use In Search</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -305,6 +384,29 @@ const searchOutput = ref("");
 const askOutput = ref("");
 const askResponse = ref(null);
 const libraryError = ref("");
+const detailsModal = ref({
+  open: false,
+  tab: "details",
+  documentId: null
+});
+
+const sampleQuestionsByFile = {
+  "sample-contract.pdf": [
+    "Who are the parties in this contract?",
+    "What is the contract duration?",
+    "What are the termination conditions?"
+  ],
+  "sample-invoice.pdf": [
+    "What is the total amount due?",
+    "When is the invoice due date?",
+    "Who is the billed customer?"
+  ],
+  "sample-story.pdf": [
+    "What is the main conflict in the story?",
+    "How does the story end?",
+    "Who is the main character?"
+  ]
+};
 
 const progress = ref({
   visible: false,
@@ -329,6 +431,10 @@ const canAsk = computed(() => {
   return selected?.extraction_status === "extracted" || extractedDocs.value.has(Number(ask.value.documentId));
 });
 
+const selectedDocument = computed(() =>
+  documentLibrary.value.find((doc) => Number(doc.id) === Number(detailsModal.value.documentId))
+);
+
 function setOutput(target, data) {
   target.value = JSON.stringify(data, null, 2);
 }
@@ -340,7 +446,9 @@ function onFilesSelected(event) {
 function clearToken() {
   token.value = "";
   documentLibrary.value = [];
+  extractedDocs.value = new Set();
   libraryError.value = "";
+  detailsModal.value.open = false;
   localStorage.removeItem("token");
 }
 
@@ -367,6 +475,49 @@ function formatDocumentLabel(document) {
   return `#${document.id} ${document.filename} (${formatSize(document.size_bytes)})`;
 }
 
+function normalizeFilename(filename) {
+  return (filename || "").trim().toLowerCase();
+}
+
+function isSampleDocument(document) {
+  return Boolean(sampleQuestionsByFile[normalizeFilename(document.filename)]);
+}
+
+function getSampleQuestions(document) {
+  return sampleQuestionsByFile[normalizeFilename(document.filename)] || [];
+}
+
+function openDocumentDetails(document) {
+  detailsModal.value.open = true;
+  detailsModal.value.documentId = document.id;
+  detailsModal.value.tab = "details";
+}
+
+function closeDocumentDetails() {
+  detailsModal.value.open = false;
+}
+
+function useDocumentInAsk(document) {
+  ask.value.documentId = document.id;
+  detailsModal.value.tab = "ask";
+}
+
+function useDocumentInSearch(document) {
+  search.value.documentId = document.id;
+  detailsModal.value.tab = "search";
+}
+
+function applySampleQuestion(document, question) {
+  useDocumentInAsk(document);
+  ask.value.question = question;
+}
+
+async function extractSelectedDocument() {
+  if (!selectedDocument.value) return;
+  extract.value.documentId = selectedDocument.value.id;
+  await handleExtract();
+}
+
 function markExtracted(documentId) {
   const id = Number(documentId);
   const next = new Set(extractedDocs.value);
@@ -389,6 +540,7 @@ function mergeDocuments(nextDocs) {
   const byId = new Map(documentLibrary.value.map((doc) => [Number(doc.id), doc]));
   nextDocs.forEach((doc) => byId.set(Number(doc.id), doc));
   documentLibrary.value = Array.from(byId.values()).sort((a, b) => Number(b.id) - Number(a.id));
+  syncExtractedFromLibrary();
 }
 
 async function refreshDocuments() {
@@ -882,7 +1034,7 @@ button:disabled {
 .doc-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 620px;
+  min-width: 920px;
   background: #0f1115;
 }
 
@@ -902,6 +1054,22 @@ button:disabled {
 
 .doc-table tbody tr:hover {
   background: rgba(255, 255, 255, 0.03);
+}
+
+.question-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-button {
+  font-size: 11px;
+  padding: 6px 10px;
+}
+
+.muted {
+  color: #a7a7ad;
+  font-size: 13px;
 }
 
 .pill {
@@ -994,6 +1162,44 @@ button:disabled {
   width: min(420px, 100%);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.doc-modal-card {
+  width: min(880px, 100%);
+}
+
+.doc-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tab-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  background: #2b2f36;
+  color: #f3f1ee;
+  box-shadow: none;
+}
+
+.tab-btn.active {
+  background: #f4b15d;
+  color: #20150a;
+}
+
+.tab-pane {
+  background: #0f1115;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .progress {
