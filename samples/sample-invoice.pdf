@@ -1,0 +1,64 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /Name /F1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 967 >>
+stream
+BT /F1 11 Tf 50 770 Td (INVOICE #2026-001) Tj ET
+BT /F1 11 Tf 50 756 Td (Bill To: Example Corporation) Tj ET
+BT /F1 11 Tf 50 742 Td (Issue Date: 2026-02-01) Tj ET
+BT /F1 11 Tf 50 728 Td (Due Date: 2026-02-28) Tj ET
+BT /F1 11 Tf 50 714 Td () Tj ET
+BT /F1 11 Tf 50 700 Td (Description                       Qty    Rate      Amount) Tj ET
+BT /F1 11 Tf 50 686 Td (AI Document Insight Platform      1      4,000.00  4,000.00) Tj ET
+BT /F1 11 Tf 50 672 Td (Overage \(additional pages\)        0          0.02       0.00) Tj ET
+BT /F1 11 Tf 50 658 Td (Support \(included\)                1          0.00       0.00) Tj ET
+BT /F1 11 Tf 50 644 Td (-----------------------------------------------------------) Tj ET
+BT /F1 11 Tf 50 630 Td (Subtotal:                                       4,000.00) Tj ET
+BT /F1 11 Tf 50 616 Td (VAT \(0%\):                                       0.00) Tj ET
+BT /F1 11 Tf 50 602 Td (Total Due:                                      4,000.00) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 559 >>
+stream
+BT /F1 11 Tf 50 770 Td (Payment Instructions:) Tj ET
+BT /F1 11 Tf 50 756 Td (Bank: Example Bank) Tj ET
+BT /F1 11 Tf 50 742 Td (IBAN: DE00 1234 5678 9012 3456 78) Tj ET
+BT /F1 11 Tf 50 728 Td (SWIFT: EXAMPLEDExx) Tj ET
+BT /F1 11 Tf 50 714 Td (Reference: 2026-001) Tj ET
+BT /F1 11 Tf 50 700 Td () Tj ET
+BT /F1 11 Tf 50 686 Td (Notes:) Tj ET
+BT /F1 11 Tf 50 672 Td (Please notify remittance to billing@example.com.) Tj ET
+BT /F1 11 Tf 50 658 Td (Late payments accrue 1.5% monthly finance charge.) Tj ET
+BT /F1 11 Tf 50 644 Td (Thank you for your business.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000201 00000 n 
+0000001219 00000 n 
+0000001345 00000 n 
+0000001955 00000 n 
+trailer
+<< /Root 1 0 R /Size 8 >>
+startxref
+2081
+%%EOF

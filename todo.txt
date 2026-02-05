@@ -1,4 +1,0 @@
-FINAL TODO:
-- create sample pdf files for testing
-- write down questions that work good on pdfs
-- UX: with document id also use name to reference it

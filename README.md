@@ -154,9 +154,11 @@ curl -X GET http://127.0.0.1:8000/documents/1/entities \
 
 ## 5) Sample Documents
 
-Sample PDFs are stored under:
+Sample PDFs (for quick uploads/tests):
 ```
-backend/storage/
+samples/sample-contract.pdf
+samples/sample-invoice.pdf
+samples/sample-story.pdf
 ```
 
 ---

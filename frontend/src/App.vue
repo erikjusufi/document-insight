@@ -40,7 +40,7 @@
           <button class="ghost" @click="clearToken">Logout</button>
         </div>
         <div class="status" v-if="token">Token saved locally.</div>
-        <pre class="output" v-if="authOutput">{{ authOutput }}</pre>
+        <pre class="output compact" v-if="authOutput">{{ authOutput }}</pre>
         </section>
 
         <section class="panel one-third">
@@ -158,7 +158,7 @@
             </div>
           </div>
         </div>
-        <pre class="output" v-if="askOutput">{{ askOutput }}</pre>
+        <pre class="output compact" v-if="askOutput">{{ askOutput }}</pre>
       </section>
 
       <section class="panel wide">
@@ -708,8 +708,14 @@ button:disabled {
   font-size: 12px;
   overflow-x: auto;
   border: 1px solid rgba(255, 255, 255, 0.06);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 180px;
 }
 
+.output.compact {
+  max-height: 120px;
+}
 .list {
   display: flex;
   flex-direction: column;

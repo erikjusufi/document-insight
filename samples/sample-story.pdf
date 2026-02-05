@@ -1,0 +1,64 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /Name /F1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 498 >>
+stream
+BT /F1 11 Tf 50 770 Td (FIELD JOURNAL: DOCUMENT INSIGHT DEPLOYMENT) Tj ET
+BT /F1 11 Tf 50 756 Td (Day 1: We connected the service to a dusty archive of scanned contracts.) Tj ET
+BT /F1 11 Tf 50 742 Td (The OCR spun up, redis warmed, and embeddings began to trickle into FAISS.) Tj ET
+BT /F1 11 Tf 50 728 Td (Latencies hovered around 2.8s uncached — good, but we wanted better.) Tj ET
+BT /F1 11 Tf 50 714 Td (We pinned the QA model to the 'best' preset; confidence climbed on legal clauses.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 385 >>
+stream
+BT /F1 11 Tf 50 770 Td (Day 2: We toggled to DistilBERT for a few hours to profile speed.) Tj ET
+BT /F1 11 Tf 50 756 Td (Cache hits jumped after we re-asked common billing questions.) Tj ET
+BT /F1 11 Tf 50 742 Td (One user searched for "termination notice" and got the right page instantly.) Tj ET
+BT /F1 11 Tf 50 728 Td (We celebrated with coffee and a cleaned-up Swagger page.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 413 >>
+stream
+BT /F1 11 Tf 50 770 Td (Day 3: A surprise request: highlight entities across all scanned NDAs.) Tj ET
+BT /F1 11 Tf 50 756 Td (spaCy models \(en, hr\) tagged names, dates, and orgs with solid precision.) Tj ET
+BT /F1 11 Tf 50 742 Td (We exported JSON snippets with page numbers, then bulk-shared via the UI.) Tj ET
+BT /F1 11 Tf 50 728 Td (Performance note: after warming, median ask latency hit 0.9s cached.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000127 00000 n 
+0000000207 00000 n 
+0000000756 00000 n 
+0000000882 00000 n 
+0000001318 00000 n 
+0000001444 00000 n 
+0000001908 00000 n 
+trailer
+<< /Root 1 0 R /Size 10 >>
+startxref
+2034
+%%EOF

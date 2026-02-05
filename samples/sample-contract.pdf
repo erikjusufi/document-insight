@@ -1,0 +1,71 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /Name /F1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 1278 >>
+stream
+BT /F1 11 Tf 50 770 Td (MASTER SERVICES AGREEMENT) Tj ET
+BT /F1 11 Tf 50 756 Td (Client: Example Corporation) Tj ET
+BT /F1 11 Tf 50 742 Td (Provider: Document Insight Service) Tj ET
+BT /F1 11 Tf 50 728 Td (Effective Date: 2026-02-01) Tj ET
+BT /F1 11 Tf 50 714 Td (Term: 12 months) Tj ET
+BT /F1 11 Tf 50 700 Td (Service: AI-driven document ingestion, OCR, retrieval, QA, and NER.) Tj ET
+BT /F1 11 Tf 50 686 Td () Tj ET
+BT /F1 11 Tf 50 672 Td (1. Scope) Tj ET
+BT /F1 11 Tf 50 658 Td (Provider will ingest PDFs and images, extract text, build embeddings, and answer questions.) Tj ET
+BT /F1 11 Tf 50 644 Td (2. Deliverables) Tj ET
+BT /F1 11 Tf 50 630 Td (Initial onboarding with three sample documents and dashboard link within 5 business days.) Tj ET
+BT /F1 11 Tf 50 616 Td (Monthly usage report covering latency, cache hit-rate, and answer confidence distribution.) Tj ET
+BT /F1 11 Tf 50 602 Td (3. SLAs) Tj ET
+BT /F1 11 Tf 50 588 Td (Uptime: 99.5% monthly; P95 cached response < 1.2s; P95 uncached < 3.0s.) Tj ET
+BT /F1 11 Tf 50 574 Td (4. Security) Tj ET
+BT /F1 11 Tf 50 560 Td (Data remains on customer-controlled infrastructure; no third-party LLM APIs.) Tj ET
+BT /F1 11 Tf 50 546 Td (Zero-trust: JWT auth, role separation for upload vs. ask, IP allowlists on request.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 985 >>
+stream
+BT /F1 11 Tf 50 770 Td (5. Compliance) Tj ET
+BT /F1 11 Tf 50 756 Td (Audit logs retained 90 days; data deletion within 24h of written request.) Tj ET
+BT /F1 11 Tf 50 742 Td (6. Fees) Tj ET
+BT /F1 11 Tf 50 728 Td (EUR 4,000 monthly base; EUR 0.02 per additional page over 50k pages/month.) Tj ET
+BT /F1 11 Tf 50 714 Td (7. Support) Tj ET
+BT /F1 11 Tf 50 700 Td (Business hours \(09:00-18:00 CET\), response within 4 hours; P1 phone escalation available.) Tj ET
+BT /F1 11 Tf 50 686 Td (8. Change Management) Tj ET
+BT /F1 11 Tf 50 672 Td (Breaking changes require 30 days notice and staging environment validation.) Tj ET
+BT /F1 11 Tf 50 658 Td (9. Termination) Tj ET
+BT /F1 11 Tf 50 644 Td (Either party may terminate with 30 days notice; data export provided in JSON+PDF.) Tj ET
+BT /F1 11 Tf 50 630 Td (10. Signatures) Tj ET
+BT /F1 11 Tf 50 616 Td (Client Representative: __________________________) Tj ET
+BT /F1 11 Tf 50 602 Td (Provider Representative: ________________________) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000201 00000 n 
+0000001531 00000 n 
+0000001657 00000 n 
+0000002693 00000 n 
+trailer
+<< /Root 1 0 R /Size 8 >>
+startxref
+2819
+%%EOF
