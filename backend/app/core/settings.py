@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     ner_default_model: str = "en_core_web_sm"
     ner_model_map: dict[str, str] = {"en": "en_core_web_sm", "hr": "hr_core_news_sm"}
+    ner_auto_download: bool = True
 
 
 @lru_cache

@@ -25,6 +25,7 @@
 - `REDIS_URL` (default: `redis://localhost:6379/0`)
 - `NER_DEFAULT_MODEL` (default: `en_core_web_sm`)
 - `NER_MODEL_MAP` (default: `{"en": "en_core_web_sm", "hr": "hr_core_news_sm"}`)
+- `NER_AUTO_DOWNLOAD` (default: `true`)
 
 ## Schema Notes
 

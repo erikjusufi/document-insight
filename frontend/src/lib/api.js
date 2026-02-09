@@ -29,7 +29,20 @@ async function request(path, { method = "GET", token, body, contentType } = {}) 
     }
   }
   if (!res.ok) {
-    const message = data?.detail || data?.message || res.statusText;
+    let message = data?.detail || data?.message || res.statusText;
+    if (Array.isArray(message)) {
+      message = message
+        .map((item) => {
+          if (!item) return null;
+          if (typeof item === "string") return item;
+          if (item.msg) return item.msg;
+          return JSON.stringify(item);
+        })
+        .filter(Boolean)
+        .join("; ");
+    } else if (message && typeof message === "object") {
+      message = JSON.stringify(message);
+    }
     const error = new Error(message);
     error.status = res.status;
     throw error;

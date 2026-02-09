@@ -35,6 +35,11 @@ def create_app() -> FastAPI:
         from app.services.job_store import JobStore
 
         app.state.job_store = JobStore()
+        from app.services.ner_service import ensure_models_available
+
+        ner_models = set(settings.ner_model_map.values())
+        ner_models.add(settings.ner_default_model)
+        ensure_models_available(ner_models, auto_download=settings.ner_auto_download)
         if settings.qa_load_on_startup:
             from app.services.qa_service import QAService
 

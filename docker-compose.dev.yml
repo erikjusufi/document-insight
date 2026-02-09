@@ -10,9 +10,11 @@ services:
       - STORAGE_DIR=/app/storage
       - FAISS_INDEX_DIR=/app/storage/faiss
       - REDIS_URL=redis://redis:6379/0
+      - SAMPLE_DOCS_DIR=/app/samples
     volumes:
       - ./backend/app:/app/app
       - ./backend/storage:/app/storage
+      - ./samples:/app/samples
     depends_on:
       - redis
 
